@@ -84,6 +84,8 @@ parse_kv_args([Arg | Args], Acc) ->
     case IdxEqual of
         0 ->
             {error, {invalid_kv_arg, Arg}};
+        1 ->
+            {error, {invalid_kv_arg, Arg}};
         IdxEnd ->
             {error, {invalid_kv_arg, Arg}};
         _ ->
@@ -393,6 +395,9 @@ parse_invalid_kv_arg_test() ->
     %% Argument with equal sign and no value
     ArgsNoVal = ["ayo="],
     ?assertMatch({error, {invalid_kv_arg, _}}, parse({Spec, ArgsNoVal})),
+    %% Argument with equal sign and no key
+    ArgsNoKey = ["=ayo"],
+    ?assertMatch({error, {invalid_kv_arg, _}}, parse({Spec, ArgsNoKey})),
     %% Argument without equal sign and no value
     ArgsNoEqualAndNoVal = ["ayo"],
     ?assertMatch({error, {invalid_kv_arg, _}}, parse({Spec, ArgsNoEqualAndNoVal})).
