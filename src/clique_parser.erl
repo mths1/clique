@@ -79,14 +79,19 @@ parse_kv_args(Args) ->
 parse_kv_args([], Acc) ->
     Acc;
 parse_kv_args([Arg | Args], Acc) ->
-    case string:tokens(Arg, "=") of
-        [Key, Val] ->
-            parse_kv_args(Args, [{Key, Val} | Acc]);
-        [Key] ->
-            {error, {invalid_kv_arg, Key}};
-        [Key | ValTokens] ->
-            GluedValTokens = string:join(ValTokens, "="),
-            parse_kv_args(Args, [{Key, GluedValTokens} | Acc])
+    IdxEqual = string:chr(Arg, $=),
+    IdxEnd = string:len(Arg),
+    case IdxEqual of
+        0 ->
+            {error, {invalid_kv_arg, Arg}};
+        1 ->
+            {error, {invalid_kv_arg, Arg}};
+        IdxEnd ->
+            {error, {invalid_kv_arg, Arg}};
+        _ ->
+            Key = string:substr(Arg, 1, IdxEqual - 1),
+            Val = string:substr(Arg, IdxEqual + 1),
+            parse_kv_args(Args, [{Key, Val} | Acc])
     end.
 
 
@@ -377,12 +382,22 @@ parse_valid_arg_value_with_equal_sign_test() ->
     ?assertEqual(Args, [{"url", "example.com?q=dada"}]),
     ?assertEqual(Flags, []).
 
+parse_valid_arg_value_with_trailing_equal_sign_test() ->
+    Spec = spec(),
+    ArgsAndFlags = ["client-id=anon-Base64v=="],
+    {Spec, Args, Flags} = parse({Spec, ArgsAndFlags}),
+    ?assertEqual(Args, [{"client-id", "anon-Base64v=="}]),
+    ?assertEqual(Flags, []).
+
 %% All arguments must be of type k=v
 parse_invalid_kv_arg_test() ->
     Spec = spec(),
     %% Argument with equal sign and no value
     ArgsNoVal = ["ayo="],
     ?assertMatch({error, {invalid_kv_arg, _}}, parse({Spec, ArgsNoVal})),
+    %% Argument with equal sign and no key
+    ArgsNoKey = ["=ayo"],
+    ?assertMatch({error, {invalid_kv_arg, _}}, parse({Spec, ArgsNoKey})),
     %% Argument without equal sign and no value
     ArgsNoEqualAndNoVal = ["ayo"],
     ?assertMatch({error, {invalid_kv_arg, _}}, parse({Spec, ArgsNoEqualAndNoVal})).
