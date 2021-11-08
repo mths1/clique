@@ -36,6 +36,8 @@
 -spec parse(status(), fun(), Acc0 :: term()) -> term().
 parse([], Fun, Acc) ->
     Fun(done, Acc);
+parse(ok, Fun, Acc) ->
+    Fun(done, Acc); % for RPC in Verne CLI
 %% Alert is currently the only non-leaf element
 parse([{alert, Elem} | T], Fun, Acc) ->
     Acc1 = Fun(alert, Acc),
