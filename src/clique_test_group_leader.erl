@@ -114,8 +114,8 @@ io_request({put_chars, M, F, A}, State) ->
     try apply(M, F, A) of
         Chars ->
             io_request({put_chars, Chars}, State)
-    catch C:T ->
-            {{error, {C,T, erlang:get_stacktrace()}}, State}
+    catch Class:Reason:Stacktrace ->
+            {{error, {Class, Reason, Stacktrace}}, State}
     end;
 io_request({put_chars, _Enc, Chars}, State) ->
     io_request({put_chars, Chars}, State);
