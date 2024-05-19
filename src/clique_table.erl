@@ -28,11 +28,10 @@
 -include("clique_status_types.hrl").
 
 -define(MAX_LINE_LEN, 100).
--define(else, true).
 -define(MINWIDTH(W),
         if W =< 0 ->
                 1;
-           ?else ->
+           true -> % else in erlang
                 W
         end).
 
